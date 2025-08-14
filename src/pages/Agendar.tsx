@@ -1,8 +1,7 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { getUserName } from '@/hooks/useUserHelpers';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -16,66 +15,70 @@ import { CalendarIcon, MapPin, Clock, CreditCard, Banknote, QrCode } from 'lucid
 import { toast } from 'sonner';
 import SiteHeader from '@/components/layout/SiteHeader';
 import MapboxMap from '@/components/map/MapboxMap';
-import { mockCompanies, mockServices } from '@/data/mockData';
-import { Company, Service, Booking } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEstablishments, EstablishmentWithServices, ServiceData } from '@/hooks/useEstablishments';
+import { useBookings } from '@/hooks/useBookings';
 
 const Agendar = () => {
   const { user } = useAuth();
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const { establishments, isLoading: loadingEstablishments } = useEstablishments();
+  const { createBooking, isLoading: creatingBooking } = useBookings();
+  
+  const [selectedEstablishment, setSelectedEstablishment] = useState<EstablishmentWithServices | null>(null);
+  const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card' | 'cash'>('card');
   const [showMap, setShowMap] = useState(false);
 
-  // Horários disponíveis (mockado)
+  // Horários disponíveis (mockado por enquanto)
   const availableTimes = [
     '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
     '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
   ];
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!user) {
       toast.error('Você precisa estar logado para fazer uma reserva');
       return;
     }
 
-    if (!selectedCompany || !selectedService || !selectedDate || !selectedTime) {
+    if (!selectedEstablishment || !selectedService || !selectedDate || !selectedTime) {
       toast.error('Preencha todos os campos para continuar');
       return;
     }
 
-    // Simular processo de agendamento
-    const booking: Booking = {
-      id: Date.now().toString(),
-      clientId: user.id,
-      clientName: getUserName(user),
-      companyId: selectedCompany.id,
-      companyName: selectedCompany.name,
+    // Criar a data/hora completa
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    const bookingDateTime = new Date(selectedDate);
+    bookingDateTime.setHours(hours, minutes, 0, 0);
+
+    const success = await createBooking({
+      establishmentId: selectedEstablishment.id,
       serviceId: selectedService.id,
-      serviceName: selectedService.name,
-      date: format(selectedDate, 'yyyy-MM-dd'),
-      time: selectedTime,
-      price: selectedService.price,
-      paymentMethod,
-      paymentStatus: 'pending',
-      status: 'confirmed'
-    };
+      bookingDate: bookingDateTime.toISOString(),
+      durationMinutes: selectedService.duration_minutes,
+      totalAmount: selectedService.price,
+      notes: paymentMethod === 'cash' ? 'Pagamento no local' : undefined
+    });
 
-    if (paymentMethod === 'card') {
-      // Simular redirecionamento para Stripe
-      toast.info('Redirecionando para pagamento...');
-      window.open('https://checkout.stripe.com/pay/fake-payment-link', '_blank');
-    } else if (paymentMethod === 'pix') {
-      // Simular geração de QR Code PIX
-      toast.success('QR Code PIX gerado! Você tem 15 minutos para pagar.');
-    } else {
-      // Pagamento em dinheiro
-      toast.success('Agendamento confirmado! Pagamento será feito no local.');
+    if (success) {
+      if (paymentMethod === 'card') {
+        toast.info('Redirecionando para pagamento...');
+        // Simular redirecionamento para Stripe
+        window.open('https://checkout.stripe.com/pay/fake-payment-link', '_blank');
+      } else if (paymentMethod === 'pix') {
+        toast.success('QR Code PIX gerado! Você tem 15 minutos para pagar.');
+      } else {
+        toast.success('Agendamento confirmado! Pagamento será feito no local.');
+      }
+
+      // Limpar formulário
+      setSelectedEstablishment(null);
+      setSelectedService(null);
+      setSelectedDate(undefined);
+      setSelectedTime('');
     }
-
-    console.log('Booking created:', booking);
   };
 
   if (!user) {
@@ -88,6 +91,17 @@ const Agendar = () => {
           <Button asChild variant="hero" className="mt-4">
             <a href="/login">Fazer Login</a>
           </Button>
+        </main>
+      </div>
+    );
+  }
+
+  if (loadingEstablishments) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <main className="container py-16 text-center">
+          <h1 className="text-2xl font-bold">Carregando estabelecimentos...</h1>
         </main>
       </div>
     );
@@ -122,30 +136,41 @@ const Agendar = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
-                  {mockCompanies.map((company) => (
-                    <div
-                      key={company.id}
-                      className={cn(
-                        "p-4 border rounded-lg cursor-pointer transition-all duration-300 hover:shadow-md",
-                        selectedCompany?.id === company.id ? "border-primary bg-primary/5" : "border-border"
-                      )}
-                      onClick={() => setSelectedCompany(company)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <h3 className="font-semibold">{company.name}</h3>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {company.address}
-                          </p>
-                          <p className="text-sm text-muted-foreground">{company.phone}</p>
-                        </div>
-                        {selectedCompany?.id === company.id && (
-                          <Badge variant="default">Selecionado</Badge>
+                  {establishments.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-8">
+                      Nenhum estabelecimento encontrado
+                    </p>
+                  ) : (
+                    establishments.map((establishment) => (
+                      <div
+                        key={establishment.id}
+                        className={cn(
+                          "p-4 border rounded-lg cursor-pointer transition-all duration-300 hover:shadow-md",
+                          selectedEstablishment?.id === establishment.id ? "border-primary bg-primary/5" : "border-border"
                         )}
+                        onClick={() => setSelectedEstablishment(establishment)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <h3 className="font-semibold">{establishment.name}</h3>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {establishment.address}
+                            </p>
+                            {establishment.phone && (
+                              <p className="text-sm text-muted-foreground">{establishment.phone}</p>
+                            )}
+                            {establishment.description && (
+                              <p className="text-sm text-muted-foreground">{establishment.description}</p>
+                            )}
+                          </div>
+                          {selectedEstablishment?.id === establishment.id && (
+                            <Badge variant="default">Selecionado</Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -162,40 +187,48 @@ const Agendar = () => {
             )}
 
             {/* Selecionar Serviço */}
-            {selectedCompany && (
+            {selectedEstablishment && (
               <Card className="shadow-professional">
                 <CardHeader>
                   <CardTitle>2. Escolha o Serviço</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-3">
-                    {selectedCompany.services.map((service) => (
-                      <div
-                        key={service.id}
-                        className={cn(
-                          "p-4 border rounded-lg cursor-pointer transition-all duration-300 hover:shadow-md",
-                          selectedService?.id === service.id ? "border-primary bg-primary/5" : "border-border"
-                        )}
-                        onClick={() => setSelectedService(service)}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div className="space-y-1">
-                            <h4 className="font-medium">{service.name}</h4>
-                            <p className="text-sm text-muted-foreground">{service.description}</p>
-                            <div className="flex items-center gap-4 text-sm">
-                              <span className="font-semibold text-primary">R$ {service.price.toFixed(2)}</span>
-                              <span className="text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {service.duration} min
-                              </span>
-                            </div>
-                          </div>
-                          {selectedService?.id === service.id && (
-                            <Badge variant="default">Selecionado</Badge>
+                    {selectedEstablishment.services.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-4">
+                        Este estabelecimento não possui serviços cadastrados
+                      </p>
+                    ) : (
+                      selectedEstablishment.services.map((service) => (
+                        <div
+                          key={service.id}
+                          className={cn(
+                            "p-4 border rounded-lg cursor-pointer transition-all duration-300 hover:shadow-md",
+                            selectedService?.id === service.id ? "border-primary bg-primary/5" : "border-border"
                           )}
+                          onClick={() => setSelectedService(service)}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="space-y-1">
+                              <h4 className="font-medium">{service.name}</h4>
+                              {service.description && (
+                                <p className="text-sm text-muted-foreground">{service.description}</p>
+                              )}
+                              <div className="flex items-center gap-4 text-sm">
+                                <span className="font-semibold text-primary">R$ {service.price.toFixed(2)}</span>
+                                <span className="text-muted-foreground flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {service.duration_minutes} min
+                                </span>
+                              </div>
+                            </div>
+                            {selectedService?.id === service.id && (
+                              <Badge variant="default">Selecionado</Badge>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -265,10 +298,10 @@ const Agendar = () => {
                 <CardTitle>Resumo da Reserva</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {selectedCompany && (
+                {selectedEstablishment && (
                   <div>
                     <Label className="text-xs text-muted-foreground">EMPRESA</Label>
-                    <p className="font-medium">{selectedCompany.name}</p>
+                    <p className="font-medium">{selectedEstablishment.name}</p>
                   </div>
                 )}
                 
@@ -276,7 +309,7 @@ const Agendar = () => {
                   <div>
                     <Label className="text-xs text-muted-foreground">SERVIÇO</Label>
                     <p className="font-medium">{selectedService.name}</p>
-                    <p className="text-sm text-muted-foreground">{selectedService.duration} minutos</p>
+                    <p className="text-sm text-muted-foreground">{selectedService.duration_minutes} minutos</p>
                   </div>
                 )}
                 
@@ -337,9 +370,9 @@ const Agendar = () => {
                       className="w-full" 
                       variant="hero" 
                       size="lg"
-                      disabled={!selectedCompany || !selectedService || !selectedDate || !selectedTime}
+                      disabled={!selectedEstablishment || !selectedService || !selectedDate || !selectedTime || creatingBooking}
                     >
-                      Confirmar Agendamento
+                      {creatingBooking ? 'Confirmando...' : 'Confirmar Agendamento'}
                     </Button>
                   </>
                 )}

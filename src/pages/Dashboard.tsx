@@ -1,325 +1,272 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getUserRole } from '@/hooks/useUserHelpers';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { mockBookings, mockPayments, mockCompanies } from '@/data/mockData';
-import { Booking, PaymentData } from '@/types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Calendar, DollarSign, Users, TrendingUp, MapPin, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, MapPin, Phone, Star, Plus } from 'lucide-react';
+import { format, parseISO, isFuture, isPast } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import SiteHeader from '@/components/layout/SiteHeader';
-import AdminPanel from '@/components/admin/AdminPanel';
+import { useBookings, BookingWithDetails } from '@/hooks/useBookings';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [payments, setPayments] = useState<PaymentData[]>([]);
+  const { getClientBookings } = useBookings();
+  const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simular carregamento de dados
-    setBookings(mockBookings);
-    setPayments(mockPayments);
-  }, []);
+    const fetchBookings = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
+      const userBookings = await getClientBookings();
+      setBookings(userBookings);
+      setIsLoading(false);
+    };
 
-  if (!user || getUserRole(user) !== 'admin') {
+    fetchBookings();
+  }, [user, getClientBookings]);
+
+  if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
-        <main className="container py-16">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-destructive">Acesso Negado</h1>
-            <p className="text-muted-foreground mt-2">Você precisa ser um administrador para acessar esta página.</p>
-          </div>
+        <main className="container py-16 text-center">
+          <h1 className="text-2xl font-bold">Faça login para ver suas reservas</h1>
+          <p className="text-muted-foreground mt-2">Você precisa estar logado para acessar o dashboard.</p>
+          <Button asChild variant="hero" className="mt-4">
+            <a href="/login">Fazer Login</a>
+          </Button>
         </main>
       </div>
     );
   }
 
-  // Usar o novo painel administrativo
-  return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
-      <AdminPanel />
-    </div>
-  );
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'default';
+      case 'confirmed': return 'default';
+      case 'completed': return 'secondary';
+      case 'cancelled': return 'destructive';
+      default: return 'default';
+    }
+  };
 
-  // Estatísticas
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pending': return 'Pendente';
+      case 'confirmed': return 'Confirmado';
+      case 'completed': return 'Concluído';
+      case 'cancelled': return 'Cancelado';
+      default: return status;
+    }
+  };
+
+  // Separar reservas futuras e passadas
+  const futureBookings = bookings.filter(booking => isFuture(parseISO(booking.booking_date)));
+  const pastBookings = bookings.filter(booking => isPast(parseISO(booking.booking_date)));
+
+  // Estatísticas rápidas
   const totalBookings = bookings.length;
-  const totalRevenue = payments.reduce((sum, payment) => sum + payment.amount, 0);
-  const totalCompanies = mockCompanies.length;
-  const completedBookings = bookings.filter(b => b.status === 'completed').length;
-
-  // Dados para gráficos
-  const monthlyData = [
-    { month: 'Jan', bookings: 45, revenue: 1200 },
-    { month: 'Fev', bookings: 52, revenue: 1450 },
-    { month: 'Mar', bookings: 48, revenue: 1300 },
-    { month: 'Abr', bookings: 61, revenue: 1650 },
-    { month: 'Mai', bookings: 55, revenue: 1500 },
-    { month: 'Jun', bookings: 67, revenue: 1800 },
-  ];
-
-  const paymentMethodData = [
-    { name: 'Cartão', value: 45, color: '#8884d8' },
-    { name: 'PIX', value: 35, color: '#82ca9d' },
-    { name: 'Dinheiro', value: 20, color: '#ffc658' },
-  ];
-
-  const serviceData = [
-    { service: 'Corte', count: 25 },
-    { service: 'Manicure', count: 18 },
-    { service: 'Barba', count: 15 },
-    { service: 'Escova', count: 12 },
-    { service: 'Coloração', count: 8 },
-  ];
+  const totalSpent = bookings
+    .filter(b => b.status === 'completed')
+    .reduce((sum, booking) => sum + Number(booking.total_amount), 0);
 
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="container py-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold gradient-text">Dashboard Administrativo</h1>
-          <p className="text-muted-foreground mt-2">Visão geral da plataforma NowLook</p>
+          <h1 className="text-3xl font-bold gradient-text">Meu Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Gerencie suas reservas e agendamentos</p>
         </div>
 
-        {/* Estatísticas Principais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-professional">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Reservas</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalBookings}</div>
-              <p className="text-xs text-muted-foreground">+12% desde último mês</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-professional">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">R$ {totalRevenue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">+8% desde último mês</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-professional">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Empresas Cadastradas</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalCompanies}</div>
-              <p className="text-xs text-muted-foreground">+3 novas este mês</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-professional">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Taxa de Conclusão</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{((completedBookings / totalBookings) * 100).toFixed(1)}%</div>
-              <p className="text-xs text-muted-foreground">+2% desde último mês</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="bookings">Reservas</TabsTrigger>
-            <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-            <TabsTrigger value="companies">Empresas</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Gráfico de Reservas Mensais */}
+        {isLoading ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground">Carregando suas reservas...</p>
+          </div>
+        ) : (
+          <>
+            {/* Estatísticas Rápidas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card className="shadow-professional">
-                <CardHeader>
-                  <CardTitle>Reservas por Mês</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total de Reservas</CardTitle>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={monthlyData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="bookings" fill="hsl(var(--primary))" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="text-2xl font-bold">{totalBookings}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {futureBookings.length} próximas
+                  </p>
                 </CardContent>
               </Card>
 
-              {/* Gráfico de Receita */}
               <Card className="shadow-professional">
-                <CardHeader>
-                  <CardTitle>Receita Mensal</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Valor Total Gasto</CardTitle>
+                  <Star className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={monthlyData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <div className="text-2xl font-bold">R$ {totalSpent.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Em serviços concluídos
+                  </p>
                 </CardContent>
               </Card>
 
-              {/* Métodos de Pagamento */}
               <Card className="shadow-professional">
-                <CardHeader>
-                  <CardTitle>Métodos de Pagamento</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Próxima Reserva</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={paymentMethodData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {paymentMethodData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Serviços Mais Populares */}
-              <Card className="shadow-professional">
-                <CardHeader>
-                  <CardTitle>Serviços Mais Populares</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={serviceData} layout="horizontal">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="service" type="category" />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="text-sm font-bold">
+                    {futureBookings.length > 0 
+                      ? format(parseISO(futureBookings[0].booking_date), 'dd/MM HH:mm')
+                      : 'Nenhuma reserva'
+                    }
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {futureBookings.length > 0 
+                      ? futureBookings[0].establishments?.name
+                      : 'Faça uma nova reserva'
+                    }
+                  </p>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
 
-          <TabsContent value="bookings" className="space-y-4">
-            <Card className="shadow-professional">
-              <CardHeader>
-                <CardTitle>Todas as Reservas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {bookings.map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                      <div className="space-y-1">
-                        <p className="font-medium">{booking.clientName}</p>
-                        <p className="text-sm text-muted-foreground">{booking.serviceName} - {booking.companyName}</p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          {booking.date} às {booking.time}
-                        </div>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <p className="font-semibold">R$ {booking.price.toFixed(2)}</p>
-                        <div className="flex gap-2">
-                          <Badge variant={booking.status === 'completed' ? 'default' : 'secondary'}>
-                            {booking.status}
-                          </Badge>
-                          <Badge variant={booking.paymentStatus === 'paid' ? 'default' : 'destructive'}>
-                            {booking.paymentStatus}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+            {/* Botão para Nova Reserva */}
+            <div className="mb-6">
+              <Button asChild variant="hero" size="lg">
+                <a href="/agendar">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Reserva
+                </a>
+              </Button>
+            </div>
 
-          <TabsContent value="payments" className="space-y-4">
-            <Card className="shadow-professional">
-              <CardHeader>
-                <CardTitle>Histórico de Pagamentos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {payments.map((payment) => (
-                    <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="space-y-1">
-                        <p className="font-medium">Pagamento #{payment.id}</p>
-                        <p className="text-sm text-muted-foreground">Reserva #{payment.bookingId}</p>
-                        <p className="text-sm text-muted-foreground">{new Date(payment.date).toLocaleDateString('pt-BR')}</p>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <p className="font-semibold">R$ {payment.amount.toFixed(2)}</p>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{payment.method.toUpperCase()}</Badge>
-                          <Badge variant={payment.status === 'paid' ? 'default' : 'destructive'}>
-                            {payment.status}
-                          </Badge>
-                        </div>
-                      </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Próximas Reservas */}
+              <Card className="shadow-professional">
+                <CardHeader>
+                  <CardTitle>Próximas Reservas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {futureBookings.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Nenhuma reserva agendada</h3>
+                      <p className="text-muted-foreground mb-4">Que tal agendar um novo serviço?</p>
+                      <Button asChild variant="outline">
+                        <a href="/agendar">Agendar Agora</a>
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  ) : (
+                    <div className="space-y-4">
+                      {futureBookings.map((booking) => (
+                        <div key={booking.id} className="p-4 border rounded-lg space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">{booking.establishments?.name}</h4>
+                            <Badge variant={getStatusColor(booking.status)}>
+                              {getStatusLabel(booking.status)}
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-1 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              {format(parseISO(booking.booking_date), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              {booking.services?.name} - {booking.duration_minutes} min
+                            </div>
+                            
+                            {booking.establishments?.address && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                {booking.establishments.address}
+                              </div>
+                            )}
+                            
+                            {booking.establishments?.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4" />
+                                {booking.establishments.phone}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center justify-between pt-2 border-t">
+                            <span className="font-semibold text-primary">R$ {Number(booking.total_amount).toFixed(2)}</span>
+                            {booking.status === 'pending' && (
+                              <span className="text-xs text-muted-foreground">Aguardando confirmação</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-          <TabsContent value="companies" className="space-y-4">
-            <Card className="shadow-professional">
-              <CardHeader>
-                <CardTitle>Empresas Cadastradas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockCompanies.map((company) => (
-                    <div key={company.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                      <div className="space-y-1">
-                        <p className="font-medium">{company.name}</p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          {company.address}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{company.phone}</p>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <Badge variant={company.verified ? 'default' : 'secondary'}>
-                          {company.verified ? 'Verificada' : 'Pendente'}
-                        </Badge>
-                        <p className="text-sm text-muted-foreground">{company.services.length} serviços</p>
-                      </div>
+              {/* Histórico de Reservas */}
+              <Card className="shadow-professional">
+                <CardHeader>
+                  <CardTitle>Histórico de Reservas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {pastBookings.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Star className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Nenhum histórico ainda</h3>
+                      <p className="text-muted-foreground">Suas reservas passadas aparecerão aqui</p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                  ) : (
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                      {pastBookings
+                        .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime())
+                        .map((booking) => (
+                          <div key={booking.id} className="p-4 border rounded-lg space-y-2">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-semibold">{booking.establishments?.name}</h4>
+                              <Badge variant={getStatusColor(booking.status)}>
+                                {getStatusLabel(booking.status)}
+                              </Badge>
+                            </div>
+                            
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                {format(parseISO(booking.booking_date), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                {booking.services?.name} - {booking.duration_minutes} min
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between pt-2 border-t">
+                              <span className="font-semibold text-primary">R$ {Number(booking.total_amount).toFixed(2)}</span>
+                              {booking.status === 'completed' && (
+                                <span className="text-xs text-green-600">✓ Concluído</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

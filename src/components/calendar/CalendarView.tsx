@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,77 +10,59 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar, Plus, Clock, User, Edit, Trash2, Ban, Check } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Appointment {
-  id: string;
-  clientName: string;
-  clientPhone: string;
-  service: string;
-  professional: string;
-  date: string;
-  time: string;
-  duration: number;
-  price: number;
-  status: 'confirmed' | 'completed' | 'cancelled' | 'no-show';
-  notes?: string;
-}
+import { format, parseISO, isToday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useBookings, BookingWithDetails } from '@/hooks/useBookings';
+import { useAuth } from '@/contexts/AuthContext';
+import { getUserRole } from '@/hooks/useUserHelpers';
 
 const CalendarView = () => {
+  const { user } = useAuth();
+  const { getEstablishmentBookings, updateBookingStatus, isLoading } = useBookings();
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
+  const [userEstablishmentId, setUserEstablishmentId] = useState<string | null>(null);
 
-  // Mock data para demonstração
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: '1',
-      clientName: 'João Silva',
-      clientPhone: '(11) 99999-9999',
-      service: 'Corte + Barba',
-      professional: 'Pedro',
-      date: '2024-01-15',
-      time: '09:00',
-      duration: 45,
-      price: 60,
-      status: 'confirmed',
-      notes: 'Cliente novo, gosta de corte baixo'
-    },
-    {
-      id: '2',
-      clientName: 'Maria Santos',
-      clientPhone: '(11) 88888-8888',
-      service: 'Corte Feminino',
-      professional: 'Ana',
-      date: '2024-01-15',
-      time: '10:30',
-      duration: 60,
-      price: 80,
-      status: 'confirmed'
-    },
-    {
-      id: '3',
-      clientName: 'Carlos Oliveira',
-      clientPhone: '(11) 77777-7777',
-      service: 'Barba',
-      professional: 'João',
-      date: '2024-01-15',
-      time: '14:00',
-      duration: 30,
-      price: 30,
-      status: 'completed'
-    }
-  ]);
+  // Buscar estabelecimento do usuário
+  useEffect(() => {
+    const fetchUserEstablishment = async () => {
+      if (!user || getUserRole(user) !== 'business') return;
 
-  const [newAppointment, setNewAppointment] = useState({
-    clientName: '',
-    clientPhone: '',
-    service: '',
-    professional: '',
-    date: '',
-    time: '',
-    notes: ''
-  });
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { data, error } = await supabase
+          .from('establishments')
+          .select('id')
+          .eq('owner_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Erro ao buscar estabelecimento:', error);
+          return;
+        }
+
+        setUserEstablishmentId(data.id);
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+      }
+    };
+
+    fetchUserEstablishment();
+  }, [user]);
+
+  // Buscar reservas do estabelecimento
+  useEffect(() => {
+    const fetchBookings = async () => {
+      if (!userEstablishmentId) return;
+
+      const bookingsData = await getEstablishmentBookings(userEstablishmentId);
+      setBookings(bookingsData);
+    };
+
+    fetchBookings();
+  }, [userEstablishmentId, getEstablishmentBookings]);
 
   const timeSlots = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -87,18 +70,9 @@ const CalendarView = () => {
     '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'
   ];
 
-  const services = [
-    { name: 'Corte Masculino', duration: 30, price: 40 },
-    { name: 'Barba', duration: 30, price: 30 },
-    { name: 'Corte + Barba', duration: 45, price: 60 },
-    { name: 'Corte Feminino', duration: 60, price: 80 },
-    { name: 'Sobrancelha', duration: 20, price: 20 }
-  ];
-
-  const professionals = ['João', 'Pedro', 'Ana', 'Carlos'];
-
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'pending': return 'default';
       case 'confirmed': return 'default';
       case 'completed': return 'secondary';
       case 'cancelled': return 'destructive';
@@ -109,6 +83,7 @@ const CalendarView = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
+      case 'pending': return 'Pendente';
       case 'confirmed': return 'Confirmado';
       case 'completed': return 'Concluído';
       case 'cancelled': return 'Cancelado';
@@ -117,48 +92,52 @@ const CalendarView = () => {
     }
   };
 
-  const handleAddAppointment = () => {
-    if (!newAppointment.clientName || !newAppointment.service || !newAppointment.professional || !newAppointment.date || !newAppointment.time) {
-      toast.error('Preencha todos os campos obrigatórios');
-      return;
+  const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
+    const success = await updateBookingStatus(bookingId, newStatus);
+    if (success && userEstablishmentId) {
+      // Recarregar bookings
+      const bookingsData = await getEstablishmentBookings(userEstablishmentId);
+      setBookings(bookingsData);
     }
+  };
 
-    const selectedService = services.find(s => s.name === newAppointment.service);
-    const appointment: Appointment = {
-      id: Date.now().toString(),
-      ...newAppointment,
-      duration: selectedService?.duration || 30,
-      price: selectedService?.price || 0,
-      status: 'confirmed'
-    };
+  // Filtrar bookings do dia atual
+  const todayBookings = bookings.filter(booking => 
+    isToday(parseISO(booking.booking_date))
+  );
 
-    setAppointments([...appointments, appointment]);
-    setNewAppointment({
-      clientName: '',
-      clientPhone: '',
-      service: '',
-      professional: '',
-      date: '',
-      time: '',
-      notes: ''
+  // Função para obter booking por horário
+  const getBookingByTime = (time: string) => {
+    return todayBookings.find(booking => {
+      const bookingTime = format(parseISO(booking.booking_date), 'HH:mm');
+      return bookingTime === time;
     });
-    setShowAddDialog(false);
-    toast.success('Agendamento criado com sucesso!');
   };
 
-  const updateAppointmentStatus = (id: string, newStatus: Appointment['status']) => {
-    setAppointments(appointments.map(apt => 
-      apt.id === id ? { ...apt, status: newStatus } : apt
-    ));
-    toast.success('Status atualizado!');
+  const getClientName = (booking: BookingWithDetails) => {
+    if (booking.profiles?.first_name || booking.profiles?.last_name) {
+      return `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim();
+    }
+    return booking.profiles?.email || 'Cliente';
   };
 
-  const deleteAppointment = (id: string) => {
-    setAppointments(appointments.filter(apt => apt.id !== id));
-    toast.success('Agendamento removido!');
-  };
+  if (!user || getUserRole(user) !== 'business') {
+    return (
+      <div className="text-center py-8">
+        <h3 className="text-lg font-semibold mb-2">Acesso Restrito</h3>
+        <p className="text-muted-foreground">Apenas estabelecimentos podem acessar a agenda.</p>
+      </div>
+    );
+  }
 
-  const todayAppointments = appointments.filter(apt => apt.date === '2024-01-15');
+  if (!userEstablishmentId) {
+    return (
+      <div className="text-center py-8">
+        <h3 className="text-lg font-semibold mb-2">Estabelecimento não encontrado</h3>
+        <p className="text-muted-foreground">Você precisa ter um estabelecimento cadastrado.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -194,117 +173,6 @@ const CalendarView = () => {
                   Mês
                 </Button>
               </div>
-              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="hero">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Novo Agendamento
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Adicionar Agendamento</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="clientName">Nome do Cliente *</Label>
-                        <Input
-                          id="clientName"
-                          value={newAppointment.clientName}
-                          onChange={(e) => setNewAppointment({...newAppointment, clientName: e.target.value})}
-                          placeholder="Nome completo"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="clientPhone">Telefone</Label>
-                        <Input
-                          id="clientPhone"
-                          value={newAppointment.clientPhone}
-                          onChange={(e) => setNewAppointment({...newAppointment, clientPhone: e.target.value})}
-                          placeholder="(11) 99999-9999"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="service">Serviço *</Label>
-                        <Select onValueChange={(value) => setNewAppointment({...newAppointment, service: value})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o serviço" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {services.map((service) => (
-                              <SelectItem key={service.name} value={service.name}>
-                                {service.name} - {service.duration}min - R$ {service.price}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="professional">Profissional *</Label>
-                        <Select onValueChange={(value) => setNewAppointment({...newAppointment, professional: value})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o profissional" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {professionals.map((prof) => (
-                              <SelectItem key={prof} value={prof}>
-                                {prof}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="date">Data *</Label>
-                        <Input
-                          id="date"
-                          type="date"
-                          value={newAppointment.date}
-                          onChange={(e) => setNewAppointment({...newAppointment, date: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="time">Horário *</Label>
-                        <Select onValueChange={(value) => setNewAppointment({...newAppointment, time: value})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o horário" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {timeSlots.map((time) => (
-                              <SelectItem key={time} value={time}>
-                                {time}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="notes">Observações</Label>
-                      <Textarea
-                        id="notes"
-                        value={newAppointment.notes}
-                        onChange={(e) => setNewAppointment({...newAppointment, notes: e.target.value})}
-                        placeholder="Anotações sobre o cliente ou serviço..."
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleAddAppointment}>
-                      Adicionar Agendamento
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
           </div>
         </CardHeader>
@@ -317,74 +185,80 @@ const CalendarView = () => {
           <div className="lg:col-span-2">
             <Card className="shadow-professional">
               <CardHeader>
-                <CardTitle>Agenda do Dia - 15 de Janeiro</CardTitle>
+                <CardTitle>Agenda do Dia - {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {timeSlots.map((time) => {
-                    const appointment = todayAppointments.find(apt => apt.time === time);
-                    return (
-                      <div key={time} className="flex items-center gap-4 p-2 border-b border-muted">
-                        <div className="w-16 text-sm text-muted-foreground font-mono">{time}</div>
-                        {appointment ? (
-                          <div className="flex-1 flex items-center justify-between bg-muted/30 p-3 rounded-lg">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                <span className="font-medium">{appointment.clientName}</span>
-                                <Badge variant={getStatusColor(appointment.status)}>
-                                  {getStatusLabel(appointment.status)}
-                                </Badge>
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Carregando agenda...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {timeSlots.map((time) => {
+                      const booking = getBookingByTime(time);
+                      return (
+                        <div key={time} className="flex items-center gap-4 p-2 border-b border-muted">
+                          <div className="w-16 text-sm text-muted-foreground font-mono">{time}</div>
+                          {booking ? (
+                            <div className="flex-1 flex items-center justify-between bg-muted/30 p-3 rounded-lg">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4" />
+                                  <span className="font-medium">{getClientName(booking)}</span>
+                                  <Badge variant={getStatusColor(booking.status)}>
+                                    {getStatusLabel(booking.status)}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {booking.services?.name} - {booking.duration_minutes}min
+                                </div>
+                                <div className="text-sm font-semibold text-primary">
+                                  R$ {Number(booking.total_amount).toFixed(2)}
+                                </div>
+                                {booking.profiles?.phone && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {booking.profiles.phone}
+                                  </div>
+                                )}
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                {appointment.service} - {appointment.professional} - {appointment.duration}min
-                              </div>
-                              <div className="text-sm font-semibold text-primary">
-                                R$ {appointment.price}
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              {appointment.status === 'confirmed' && (
-                                <>
+                              <div className="flex gap-1">
+                                {booking.status === 'pending' && (
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => updateAppointmentStatus(appointment.id, 'completed')}
+                                    onClick={() => handleUpdateStatus(booking.id, 'confirmed')}
                                   >
                                     <Check className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => updateAppointmentStatus(appointment.id, 'no-show')}
-                                  >
-                                    <Ban className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => setSelectedAppointment(appointment)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => deleteAppointment(appointment.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                                )}
+                                {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                                  <>
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      onClick={() => handleUpdateStatus(booking.id, 'completed')}
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      onClick={() => handleUpdateStatus(booking.id, 'no-show')}
+                                    >
+                                      <Ban className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <div className="flex-1 text-muted-foreground text-sm">Livre</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                          ) : (
+                            <div className="flex-1 text-muted-foreground text-sm">Livre</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -398,19 +272,21 @@ const CalendarView = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total de Agendamentos:</span>
-                  <span className="font-semibold">{todayAppointments.length}</span>
+                  <span className="font-semibold">{todayBookings.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Confirmados:</span>
-                  <span className="font-semibold">{todayAppointments.filter(a => a.status === 'confirmed').length}</span>
+                  <span className="font-semibold">{todayBookings.filter(b => b.status === 'confirmed').length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Concluídos:</span>
-                  <span className="font-semibold">{todayAppointments.filter(a => a.status === 'completed').length}</span>
+                  <span className="font-semibold">{todayBookings.filter(b => b.status === 'completed').length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Faturamento Previsto:</span>
-                  <span className="font-semibold">R$ {todayAppointments.reduce((sum, apt) => sum + apt.price, 0)}</span>
+                  <span className="text-muted-foreground">Faturamento do Dia:</span>
+                  <span className="font-semibold">
+                    R$ {todayBookings.reduce((sum, booking) => sum + Number(booking.total_amount), 0).toFixed(2)}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -421,18 +297,25 @@ const CalendarView = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {todayAppointments
-                    .filter(apt => apt.status === 'confirmed')
+                  {todayBookings
+                    .filter(booking => booking.status === 'confirmed' || booking.status === 'pending')
                     .slice(0, 3)
-                    .map((apt) => (
-                      <div key={apt.id} className="p-3 bg-muted/30 rounded-lg">
-                        <div className="font-medium">{apt.clientName}</div>
-                        <div className="text-sm text-muted-foreground">{apt.time} - {apt.service}</div>
-                        {apt.clientPhone && (
-                          <div className="text-xs text-muted-foreground">{apt.clientPhone}</div>
+                    .map((booking) => (
+                      <div key={booking.id} className="p-3 bg-muted/30 rounded-lg">
+                        <div className="font-medium">{getClientName(booking)}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {format(parseISO(booking.booking_date), 'HH:mm')} - {booking.services?.name}
+                        </div>
+                        {booking.profiles?.phone && (
+                          <div className="text-xs text-muted-foreground">{booking.profiles.phone}</div>
                         )}
                       </div>
                     ))}
+                  {todayBookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length === 0 && (
+                    <p className="text-muted-foreground text-center py-4">
+                      Nenhum cliente agendado
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>

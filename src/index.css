@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 210 10% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 10% 15%;
+
+    --primary: 213 94% 68%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 210 10% 15%;
+
+    --muted: 210 16% 96%;
+    --muted-foreground: 210 6% 45%;
+
+    --accent: 213 94% 68%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 213 94% 68%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 210 10% 15%;
+    --sidebar-primary: 213 94% 68%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 16% 96%;
+    --sidebar-accent-foreground: 210 10% 15%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 213 94% 68%;
+
+    /* Professional Brand Colors */
+    --brand: 213 94% 68%; /* professional blue */
+    --brand-secondary: 205 100% 50%; /* tech blue */
+    --brand-accent: 220 13% 18%; /* dark charcoal */
+    --brand-neutral: 210 6% 45%; /* neutral gray */
+
+    /* Professional Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand)) 0%, hsl(var(--brand-secondary)) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--brand-accent)) 0%, hsl(210 10% 8%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(210 16% 96%) 100%);
+
+    /* Professional Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(var(--brand-accent) / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(var(--brand-accent) / 0.1), 0 2px 4px -1px hsl(var(--brand-accent) / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--brand-accent) / 0.1), 0 4px 6px -2px hsl(var(--brand-accent) / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(var(--brand-accent) / 0.1), 0 10px 10px -5px hsl(var(--brand-accent) / 0.04);
+    --shadow-2xl: 0 25px 50px -12px hsl(var(--brand-accent) / 0.25);
+    --shadow-glow: 0 0 20px hsl(var(--brand) / 0.3);
+
+    /* Glassmorphism */
+    --glass: hsla(0, 0%, 100%, 0.1);
+    --glass-border: hsla(0, 0%, 100%, 0.2);
+  }
+
+  .dark {
+    --background: 210 10% 8%;
+    --foreground: 210 16% 96%;
+
+    --card: 220 13% 10%;
+    --card-foreground: 210 16% 96%;
+
+    --popover: 220 13% 10%;
+    --popover-foreground: 210 16% 96%;
+
+    --primary: 213 94% 68%;
+    --primary-foreground: 210 10% 8%;
+
+    --secondary: 220 13% 14%;
+    --secondary-foreground: 210 16% 96%;
+
+    --muted: 220 13% 14%;
+    --muted-foreground: 210 6% 65%;
+
+    --accent: 213 94% 68%;
+    --accent-foreground: 210 10% 8%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 16% 96%;
+
+    --border: 220 13% 18%;
+    --input: 220 13% 18%;
+    --ring: 213 94% 68%;
+
+    --sidebar-background: 220 13% 10%;
+    --sidebar-foreground: 210 16% 96%;
+    --sidebar-primary: 213 94% 68%;
+    --sidebar-primary-foreground: 210 10% 8%;
+    --sidebar-accent: 220 13% 14%;
+    --sidebar-accent-foreground: 210 16% 96%;
+    --sidebar-border: 220 13% 18%;
+    --sidebar-ring: 213 94% 68%;
+
+    /* Professional Brand Colors Dark */
+    --brand: 213 94% 68%;
+    --brand-secondary: 205 100% 50%;
+    --brand-accent: 210 16% 96%;
+    --brand-neutral: 210 6% 65%;
+
+    /* Professional Gradients Dark */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand)) 0%, hsl(var(--brand-secondary)) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(220 13% 18%) 0%, hsl(220 13% 10%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(220 13% 14%) 100%);
+
+    /* Glass Dark */
+    --glass: hsla(220, 13%, 100%, 0.05);
+    --glass-border: hsla(220, 13%, 100%, 0.1);
+  }
+}
+
+
+@layer base {
+  * {
+    @apply border-border;
+}
+
+@layer utilities {
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-all after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+  .hover-scale { @apply transition-all duration-300 hover:scale-105 hover:shadow-lg; }
+  .pulse { @apply animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]; }
+  .glass { @apply bg-white/10 backdrop-blur-xl border border-white/20 dark:bg-white/5 dark:border-white/10; }
+  .shadow-professional { @apply shadow-lg hover:shadow-xl transition-shadow duration-300; }
+  .gradient-primary { background: var(--gradient-primary); }
+  .gradient-secondary { background: var(--gradient-secondary); }
+  .gradient-text { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  
+  /* Responsive utilities */
+  .container-mobile { @apply px-4 sm:px-6 lg:px-8; }
+  .text-responsive-lg { @apply text-lg sm:text-xl lg:text-2xl; }
+  .text-responsive-xl { @apply text-xl sm:text-2xl lg:text-3xl; }
+  .text-responsive-2xl { @apply text-2xl sm:text-3xl lg:text-4xl; }
+  .text-responsive-3xl { @apply text-3xl sm:text-4xl lg:text-5xl; }
+  .spacing-responsive { @apply space-y-4 sm:space-y-6 lg:space-y-8; }
+  .grid-responsive { @apply grid gap-4 sm:gap-6 lg:gap-8; }
+  .padding-responsive { @apply p-4 sm:p-6 lg:p-8; }
+}
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter", "Manrope", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    letter-spacing: -0.01em;
+  }
+}

@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUserRole, getUserName } from '@/hooks/useUserHelpers';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { User, LogOut, Settings, BarChart3, Menu, X } from "lucide-react";
@@ -64,7 +65,7 @@ const SiteHeader = () => {
           Meu Perfil
         </NavLink>
       )}
-      {user?.type === 'professional' && (
+      {getUserRole(user) === 'business' && (
         <NavLink 
           to="/empresa/dashboard" 
           className="flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-muted/60 transition-colors"
@@ -73,7 +74,7 @@ const SiteHeader = () => {
           Dashboard
         </NavLink>
       )}
-      {user?.type === 'admin' && (
+      {getUserRole(user) === 'admin' && (
         <NavLink 
           to="/dashboard" 
           className="flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-muted/60 transition-colors"
@@ -101,11 +102,11 @@ const SiteHeader = () => {
               <NavLink to="/agendar" className={navLink}>Agendar</NavLink>
               <NavLink to="/promocoes" className={navLink}>Promoções</NavLink>
               {user && <NavLink to="/perfil" className={navLink}>Meu Perfil</NavLink>}
-              {user?.type === 'professional' && <NavLink to="/empresa/dashboard" className={navLink}>Dashboard</NavLink>}
+              {getUserRole(user) === 'business' && <NavLink to="/empresa/dashboard" className={navLink}>Dashboard</NavLink>}
             </div>
             
             <div className="flex items-center gap-2">
-              {user?.type === 'professional' && <NotificationCenter />}
+              {getUserRole(user) === 'business' && <NotificationCenter />}
               <ThemeToggle />
               
               {user ? (
@@ -113,7 +114,7 @@ const SiteHeader = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      <span className="hidden sm:inline">{user.name}</span>
+                      <span className="hidden sm:inline">{getUserName(user)}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
@@ -124,7 +125,7 @@ const SiteHeader = () => {
                       </NavLink>
                     </DropdownMenuItem>
                     
-                    {user.type === 'professional' && (
+                    {getUserRole(user) === 'business' && (
                       <>
                         <DropdownMenuItem asChild>
                           <NavLink to="/empresa/dashboard" className="flex items-center gap-2 w-full">
@@ -141,7 +142,7 @@ const SiteHeader = () => {
                       </>
                     )}
                     
-                    {user.type === 'admin' && (
+                    {getUserRole(user) === 'admin' && (
                       <DropdownMenuItem asChild>
                         <NavLink to="/dashboard" className="flex items-center gap-2 w-full">
                           <BarChart3 className="h-4 w-4" />
@@ -169,7 +170,7 @@ const SiteHeader = () => {
         {/* Mobile Navigation */}
         {isMobile && (
           <div className="flex items-center gap-2">
-            {user?.type === 'professional' && <NotificationCenter />}
+            {getUserRole(user) === 'business' && <NotificationCenter />}
             <ThemeToggle />
             
             {user ? (
@@ -187,7 +188,7 @@ const SiteHeader = () => {
                     </NavLink>
                   </DropdownMenuItem>
                   
-                  {user.type === 'professional' && (
+                  {getUserRole(user) === 'business' && (
                     <>
                       <DropdownMenuItem asChild>
                         <NavLink to="/empresa/dashboard" className="flex items-center gap-2 w-full">
@@ -204,7 +205,7 @@ const SiteHeader = () => {
                     </>
                   )}
                   
-                  {user.type === 'admin' && (
+                  {getUserRole(user) === 'admin' && (
                     <DropdownMenuItem asChild>
                       <NavLink to="/dashboard" className="flex items-center gap-2 w-full">
                         <BarChart3 className="h-4 w-4" />

@@ -22,10 +22,13 @@ const Login = () => {
     e.preventDefault();
     try {
       if (isRegister) {
-        await register(email, password, name, userType as 'client' | 'professional');
+        const nameParts = name.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        await register(email, password, firstName, lastName, userType as 'client' | 'business');
         toast.success('Cadastro realizado com sucesso!');
       } else {
-        await login(email, password, userType);
+        await login(email, password);
         toast.success('Login realizado com sucesso!');
       }
       navigate('/');
@@ -49,7 +52,7 @@ const Login = () => {
               <Tabs value={userType} onValueChange={(value) => setUserType(value as any)}>
                 <TabsList className="grid w-full grid-cols-3 mb-6">
                   <TabsTrigger value="client">Cliente</TabsTrigger>
-                  <TabsTrigger value="professional">Profissional</TabsTrigger>
+                  <TabsTrigger value="business">Profissional</TabsTrigger>
                   <TabsTrigger value="admin">Admin</TabsTrigger>
                 </TabsList>
                 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getUserRole } from '@/hooks/useUserHelpers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ const Dashboard = () => {
     setPayments(mockPayments);
   }, []);
 
-  if (!user || user.type !== 'admin') {
+  if (!user || getUserRole(user) !== 'admin') {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />

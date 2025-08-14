@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getUserRole } from '@/hooks/useUserHelpers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,7 @@ const CompanyDashboard = () => {
     topService: 'Corte + Barba'
   });
 
-  if (!user || user.type !== 'professional') {
+  if (!user || getUserRole(user) !== 'business') {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />

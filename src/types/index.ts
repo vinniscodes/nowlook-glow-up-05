@@ -1,12 +1,21 @@
 // Tipos para o sistema
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
-export interface User {
+export interface UserProfile {
   id: string;
+  user_id: string;
   email: string;
-  name: string;
-  type: 'client' | 'professional' | 'admin';
-  subscribed?: boolean;
-  subscription_end?: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  role: 'client' | 'business' | 'admin';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ExtendedUser extends SupabaseUser {
+  profile?: UserProfile;
 }
 
 export interface Company {

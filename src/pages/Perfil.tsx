@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SiteHeader from "@/components/layout/SiteHeader";
+import { getUserName, getUserRole, getUserEmail } from '@/hooks/useUserHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -112,19 +113,19 @@ export default function Perfil() {
             <div className="flex items-start gap-6">
               <Avatar className="h-20 w-20">
                 <AvatarFallback className="text-2xl">
-                  {user.name.split(' ').map(n => n[0]).join('')}
+                  {getUserName(user).split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               
               <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-1">{user.name}</h1>
-                <p className="text-muted-foreground mb-3">{user.email}</p>
+                <h1 className="text-2xl font-bold mb-1">{getUserName(user)}</h1>
+                <p className="text-muted-foreground mb-3">{getUserEmail(user)}</p>
                 <div className="flex items-center gap-4">
                   <Badge variant="outline">
                     <User className="h-3 w-3 mr-1" />
-                    {user.type === 'professional' ? 'Profissional' : 'Cliente'}
+                    {getUserRole(user) === 'business' ? 'Profissional' : 'Cliente'}
                   </Badge>
-                  {user.type === 'professional' && (
+                  {getUserRole(user) === 'business' && (
                     <Link to="/empresa/dashboard">
                       <Button variant="outline" size="sm">
                         Dashboard
@@ -397,7 +398,7 @@ export default function Perfil() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Nome Completo</label>
-                    <p className="text-muted-foreground">{user.name}</p>
+                    <p className="text-muted-foreground">{getUserName(user)}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Email</label>

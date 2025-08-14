@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getUserName } from '@/hooks/useUserHelpers';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -49,7 +50,7 @@ const Agendar = () => {
     const booking: Booking = {
       id: Date.now().toString(),
       clientId: user.id,
-      clientName: user.name,
+      clientName: getUserName(user),
       companyId: selectedCompany.id,
       companyName: selectedCompany.name,
       serviceId: selectedService.id,

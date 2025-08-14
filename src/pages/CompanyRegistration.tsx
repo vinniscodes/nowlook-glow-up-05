@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { getUserRole } from '@/hooks/useUserHelpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,7 +31,7 @@ const CompanyRegistration = () => {
     description: ''
   });
 
-  const isSubscribed = user?.type === 'professional';
+  const isSubscribed = getUserRole(user) === 'business';
 
   const handleCompanySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +75,7 @@ const CompanyRegistration = () => {
     window.open('https://checkout.stripe.com/pay/fake-subscription-link', '_blank');
   };
 
-  if (!user || user.type !== 'professional') {
+  if (!user || getUserRole(user) !== 'business') {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />

@@ -9,11 +9,12 @@ import { format, parseISO, isFuture, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import SiteHeader from '@/components/layout/SiteHeader';
 import { useBookings, BookingWithDetails } from '@/hooks/useBookings';
+import { useUserStats } from '@/hooks/useStats';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { getClientBookings } = useBookings();
-  // Removed real stats temporarily
+  const { stats: userStats, isLoading: statsLoading } = useUserStats();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

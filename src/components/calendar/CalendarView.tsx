@@ -231,23 +231,23 @@ const CalendarView = () => {
                                     <Check className="h-4 w-4" />
                                   </Button>
                                 )}
+                                {booking.status === 'confirmed' && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleUpdateStatus(booking.id, 'completed')}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                )}
                                 {(booking.status === 'pending' || booking.status === 'confirmed') && (
-                                  <>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      onClick={() => handleUpdateStatus(booking.id, 'completed')}
-                                    >
-                                      <Check className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      onClick={() => handleUpdateStatus(booking.id, 'cancelled')}
-                                    >
-                                      <Ban className="h-4 w-4" />
-                                    </Button>
-                                  </>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleUpdateStatus(booking.id, 'cancelled')}
+                                  >
+                                    <Ban className="h-4 w-4" />
+                                  </Button>
                                 )}
                               </div>
                             </div>

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search } from "lucide-react";
 import SiteHeader from "@/components/layout/SiteHeader";
+import { useSiteStats } from "@/hooks/useStats";
 
 const Index = () => {
   const { stats, isLoading } = useSiteStats();

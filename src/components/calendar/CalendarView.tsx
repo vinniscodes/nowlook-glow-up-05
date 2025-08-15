@@ -92,7 +92,7 @@ const CalendarView = () => {
     }
   };
 
-  const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
+  const handleUpdateStatus = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'completed' | 'cancelled') => {
     const success = await updateBookingStatus(bookingId, newStatus);
     if (success && userEstablishmentId) {
       // Recarregar bookings
@@ -243,7 +243,7 @@ const CalendarView = () => {
                                     <Button 
                                       size="sm" 
                                       variant="outline"
-                                      onClick={() => handleUpdateStatus(booking.id, 'no-show')}
+                                      onClick={() => handleUpdateStatus(booking.id, 'cancelled')}
                                     >
                                       <Ban className="h-4 w-4" />
                                     </Button>

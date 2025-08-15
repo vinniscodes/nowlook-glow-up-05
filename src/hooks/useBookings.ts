@@ -39,7 +39,7 @@ export interface BookingWithDetails {
   profiles?: {
     first_name?: string;
     last_name?: string;
-    email: string;
+    email?: string;
     phone?: string;
   };
 }
@@ -108,7 +108,7 @@ export const useBookings = () => {
         return [];
       }
 
-      return data || [];
+      return (data || []) as BookingWithDetails[];
     } catch (error) {
       console.error('Erro inesperado:', error);
       return [];

@@ -13,7 +13,7 @@ import { useBookings, BookingWithDetails } from '@/hooks/useBookings';
 const Dashboard = () => {
   const { user } = useAuth();
   const { getClientBookings } = useBookings();
-  const { stats: userStats, isLoading: statsLoading } = useUserStats();
+  // Removed real stats temporarily
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

@@ -15,7 +15,7 @@ const Landing = () => {
     {
       icon: <Users className="h-6 w-6" />,
       title: "Profissionais Verificados",
-      description: "Rede de +1.000 profissionais certificados e avaliados",
+      description: "Rede de profissionais certificados e avaliados",
       highlight: "100% Verificados"
     },
     {
@@ -67,11 +67,12 @@ const Landing = () => {
     }
   ];
 
+  // Use real stats - these will be replaced with live data
   const stats = [
-    { number: "1000+", label: "Profissionais" },
-    { number: "50k+", label: "Agendamentos" },
-    { number: "4.9", label: "Avaliação" },
-    { number: "15", label: "Cidades" }
+    { number: "0", label: "Profissionais" },
+    { number: "0", label: "Agendamentos" },
+    { number: "5.0", label: "Avaliação" },
+    { number: "1", label: "Cidade" }
   ];
 
   return (

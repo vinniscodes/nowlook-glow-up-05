@@ -74,8 +74,8 @@ const Index = () => {
                 </div>
                 <div className="flex items-center gap-2 glass rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
                   <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-primary animate-pulse" />
-                  <span className="hidden sm:inline">+1000 profissionais</span>
-                  <span className="sm:hidden">+1000</span>
+                  <span className="hidden sm:inline">{stats.totalEstablishments} profissionais</span>
+                  <span className="sm:hidden">{stats.totalEstablishments}</span>
                 </div>
                 <div className="flex items-center gap-2 glass rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
                   <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-primary animate-pulse" />

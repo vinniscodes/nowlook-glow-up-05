@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import SiteHeader from "@/components/layout/SiteHeader";
 
 const Index = () => {
+  const { stats, isLoading } = useSiteStats();
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',

@@ -137,7 +137,7 @@ export const useBookings = () => {
         return [];
       }
 
-      return data || [];
+      return (data || []) as BookingWithDetails[];
     } catch (error) {
       console.error('Erro inesperado:', error);
       return [];
@@ -146,7 +146,7 @@ export const useBookings = () => {
     }
   };
 
-  const updateBookingStatus = async (bookingId: string, status: string): Promise<boolean> => {
+  const updateBookingStatus = async (bookingId: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled'): Promise<boolean> => {
     setIsLoading(true);
     try {
       const { error } = await supabase

@@ -11,6 +11,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   loading: boolean;
   session: Session | null;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,7 +49,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const refreshUser = async () => {
+    if (session?.user) {
+      const profile = await fetchUserProfile(session.user.id);
+      const extendedUser: ExtendedUser = {
+        ...session.user,
+        profile
+      };
+      setUser(extendedUser);
+    }
+  };
+
   useEffect(() => {
+    let profileSubscription: any = null;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -62,8 +76,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             profile
           };
           setUser(extendedUser);
+
+          // Set up real-time subscription for profile changes
+          profileSubscription = supabase
+            .channel('profile-changes')
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'profiles',
+                filter: `user_id=eq.${session.user.id}`,
+              },
+              async () => {
+                // Refresh user profile when it changes
+                await refreshUser();
+              }
+            )
+            .subscribe();
         } else {
           setUser(null);
+          if (profileSubscription) {
+            supabase.removeChannel(profileSubscription);
+            profileSubscription = null;
+          }
         }
         
         setLoading(false);
@@ -87,7 +123,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (profileSubscription) {
+        supabase.removeChannel(profileSubscription);
+      }
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -158,7 +199,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, session, login, register, logout, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,15 +1,50 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Star, Users, Shield, Clock, CreditCard, ArrowRight, Sparkles, Zap, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { getUserRole } from "@/hooks/useUserHelpers";
 import heroImage from "@/assets/hero-nowlook.jpg";
 
 const Landing = () => {
   const [activeFeature, setActiveFeature] = useState(0);
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const { login, register, loading, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (isLoginMode) {
+        await login(email, password);
+        const role = getUserRole(user);
+        
+        if (role === 'admin') {
+          navigate('/admin');
+        } else if (role === 'business') {
+          navigate('/company-dashboard');
+        } else {
+          navigate('/');
+        }
+      } else {
+        const nameParts = name.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        await register(email, password, firstName, lastName, 'client');
+        navigate('/');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erro na autenticação');
+    }
+  };
 
   const features = [
     {
@@ -170,28 +205,43 @@ const Landing = () => {
                 </CardHeader>
                 
                 <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
-                  <div className="space-y-3 sm:space-y-4">
+                  <form onSubmit={handleAuth} className="space-y-3 sm:space-y-4">
                     {!isLoginMode && (
                       <Input 
                         placeholder="Nome completo" 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
                         className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
                       />
                     )}
                     <Input 
                       type="email" 
                       placeholder="E-mail" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
                       className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
                     />
                     <Input 
                       type="password" 
                       placeholder="Senha" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
                       className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
                     />
-                  </div>
+                  </form>
 
-                  <Button className="w-full h-10 sm:h-12" size="lg" variant="hero">
+                  <Button 
+                    onClick={handleAuth}
+                    disabled={loading}
+                    className="w-full h-10 sm:h-12" 
+                    size="lg" 
+                    variant="hero"
+                  >
                     <span className="text-sm sm:text-base">
-                      {isLoginMode ? 'Entrar' : 'Criar conta grátis'}
+                      {loading ? 'Processando...' : (isLoginMode ? 'Entrar' : 'Criar conta grátis')}
                     </span>
                     <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>

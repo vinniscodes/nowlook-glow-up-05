@@ -19,6 +19,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CompanyRegistration from "./pages/CompanyRegistration";
 import CompanyDashboard from "./pages/CompanyDashboard";
+import AdminControlCenter from "./pages/AdminControlCenter";
 import CookieBanner from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/empresa/cadastro" element={<CompanyRegistration />} />
                   <Route path="/empresa/dashboard" element={<CompanyDashboard />} />
+                  <Route path="/admin" element={<AdminControlCenter />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

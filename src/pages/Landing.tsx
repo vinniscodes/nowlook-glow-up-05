@@ -102,13 +102,6 @@ const Landing = () => {
     }
   ];
 
-  // Use real stats - these will be replaced with live data
-  const stats = [
-    { number: "0", label: "Profissionais" },
-    { number: "0", label: "Agendamentos" },
-    { number: "5.0", label: "Avaliação" },
-    { number: "1", label: "Cidade" }
-  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -148,16 +141,6 @@ const Landing = () => {
                   A plataforma que revoluciona como você agenda serviços de <span className="text-foreground font-semibold">beleza e bem-estar</span>. 
                   Rápido, seguro e no seu horário.
                 </p>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-4 gap-4">
-                {stats.map((stat, index) => (
-                  <div key={index} className="glass rounded-xl p-4 text-center animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <div className="text-2xl font-bold gradient-text">{stat.number}</div>
-                    <div className="text-sm text-muted-foreground">{stat.label}</div>
-                  </div>
-                ))}
               </div>
 
               {/* Interactive Features */}

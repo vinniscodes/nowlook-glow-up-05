@@ -1,20 +1,17 @@
-import { NavLink } from "react-router-dom";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useAuth } from "@/contexts/AuthContext";
-import { getUserRole, getUserName } from '@/hooks/useUserHelpers';
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
-import { User, LogOut, Settings, BarChart3, Menu, X } from "lucide-react";
-import NotificationCenter from "@/components/business/NotificationCenter";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { NavLink, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Calendar, User, LogOut, Menu, X, Settings, Building, BarChart3 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { getUserName, getUserRole } from "@/hooks/useUserHelpers";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import NotificationSystem from "@/components/notifications/NotificationSystem";
+import NotificationCenter from "@/components/business/NotificationCenter";
 
 const navLink = ({ isActive }: { isActive: boolean }) =>
   `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"} story-link`;
@@ -23,6 +20,7 @@ const SiteHeader = () => {
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const userRole = getUserRole(user);
 
   // Mobile Navigation Component
   const MobileNav = () => (
@@ -65,7 +63,7 @@ const SiteHeader = () => {
           Meu Perfil
         </NavLink>
       )}
-      {getUserRole(user) === 'business' && (
+      {userRole === 'business' && (
         <NavLink 
           to="/empresa/dashboard" 
           className="flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-muted/60 transition-colors"
@@ -74,13 +72,13 @@ const SiteHeader = () => {
           Dashboard
         </NavLink>
       )}
-      {getUserRole(user) === 'admin' && (
+      {userRole === 'admin' && (
         <NavLink 
-          to="/dashboard" 
+          to="/admin" 
           className="flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-muted/60 transition-colors"
           onClick={() => setIsMenuOpen(false)}
         >
-          Dashboard Admin
+          Central de Controle
         </NavLink>
       )}
     </div>
@@ -102,58 +100,73 @@ const SiteHeader = () => {
               <NavLink to="/agendar" className={navLink}>Agendar</NavLink>
               <NavLink to="/promocoes" className={navLink}>Promoções</NavLink>
               {user && <NavLink to="/perfil" className={navLink}>Meu Perfil</NavLink>}
-              {getUserRole(user) === 'business' && <NavLink to="/empresa/dashboard" className={navLink}>Dashboard</NavLink>}
+              {userRole === 'business' && <NavLink to="/empresa/dashboard" className={navLink}>Dashboard</NavLink>}
+              {userRole === 'admin' && <NavLink to="/admin" className={navLink}>Admin</NavLink>}
             </div>
             
             <div className="flex items-center gap-2">
-              {getUserRole(user) === 'business' && <NotificationCenter />}
+              {user && <NotificationSystem />}
+              {userRole === 'business' && <NotificationCenter />}
               <ThemeToggle />
               
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span className="hidden sm:inline">{getUserName(user)}</span>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-sm">
+                          {getUserName(user).split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
+                    <div className="px-2 py-1.5 text-sm font-medium">
+                      {getUserName(user)}
+                    </div>
+                    <div className="px-2 pb-2">
+                      <Badge variant="outline" className="text-xs">
+                        {userRole === 'business' ? 'Profissional' : 
+                         userRole === 'admin' ? 'Administrador' : 'Cliente'}
+                      </Badge>
+                    </div>
+                    <DropdownMenuSeparator />
+                    
                     <DropdownMenuItem asChild>
-                      <NavLink to="/perfil" className="flex items-center gap-2 w-full">
-                        <User className="h-4 w-4" />
+                      <Link to="/perfil" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
                         Meu Perfil
-                      </NavLink>
+                      </Link>
                     </DropdownMenuItem>
                     
-                    {getUserRole(user) === 'business' && (
-                      <>
-                        <DropdownMenuItem asChild>
-                          <NavLink to="/empresa/dashboard" className="flex items-center gap-2 w-full">
-                            <BarChart3 className="h-4 w-4" />
-                            Dashboard
-                          </NavLink>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <NavLink to="/empresa/cadastro" className="flex items-center gap-2 w-full">
-                            <Settings className="h-4 w-4" />
-                            Gerenciar Empresa
-                          </NavLink>
-                        </DropdownMenuItem>
-                      </>
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="cursor-pointer">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Meus Agendamentos
+                      </Link>
+                    </DropdownMenuItem>
+                    
+                    {userRole === 'business' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/empresa/dashboard" className="cursor-pointer">
+                          <Building className="mr-2 h-4 w-4" />
+                          Dashboard Empresa
+                        </Link>
+                      </DropdownMenuItem>
                     )}
                     
-                    {getUserRole(user) === 'admin' && (
+                    {userRole === 'admin' && (
                       <DropdownMenuItem asChild>
-                        <NavLink to="/dashboard" className="flex items-center gap-2 w-full">
-                          <BarChart3 className="h-4 w-4" />
-                          Dashboard
-                        </NavLink>
+                        <Link to="/admin" className="cursor-pointer">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Central de Controle
+                        </Link>
                       </DropdownMenuItem>
                     )}
                     
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout} className="flex items-center gap-2 text-destructive">
-                      <LogOut className="h-4 w-4" />
+                    <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
                       Sair
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -170,7 +183,8 @@ const SiteHeader = () => {
         {/* Mobile Navigation */}
         {isMobile && (
           <div className="flex items-center gap-2">
-            {getUserRole(user) === 'business' && <NotificationCenter />}
+            {user && <NotificationSystem />}
+            {userRole === 'business' && <NotificationCenter />}
             <ThemeToggle />
             
             {user ? (
@@ -188,7 +202,7 @@ const SiteHeader = () => {
                     </NavLink>
                   </DropdownMenuItem>
                   
-                  {getUserRole(user) === 'business' && (
+                  {userRole === 'business' && (
                     <>
                       <DropdownMenuItem asChild>
                         <NavLink to="/empresa/dashboard" className="flex items-center gap-2 w-full">
@@ -205,11 +219,11 @@ const SiteHeader = () => {
                     </>
                   )}
                   
-                  {getUserRole(user) === 'admin' && (
+                  {userRole === 'admin' && (
                     <DropdownMenuItem asChild>
-                      <NavLink to="/dashboard" className="flex items-center gap-2 w-full">
-                        <BarChart3 className="h-4 w-4" />
-                        Dashboard
+                      <NavLink to="/admin" className="flex items-center gap-2 w-full">
+                        <Settings className="h-4 w-4" />
+                        Admin
                       </NavLink>
                     </DropdownMenuItem>
                   )}

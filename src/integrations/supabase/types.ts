@@ -226,6 +226,33 @@ export type Database = {
         }
         Relationships: []
       }
+      security_logs: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           category: string
@@ -320,7 +347,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          identifier: string
+          max_attempts?: number
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
+      log_security_event: {
+        Args: {
+          description: string
+          event_type: string
+          ip_address?: string
+          user_id_param: string
+        }
+        Returns: undefined
+      }
+      sanitize_text: {
+        Args: { input_text: string }
+        Returns: string
+      }
+      validate_email: {
+        Args: { email_input: string }
+        Returns: boolean
+      }
     }
     Enums: {
       booking_status: "pending" | "confirmed" | "completed" | "cancelled"

@@ -32,9 +32,9 @@ export default function Perfil() {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => { 
-    document.title = "Meu Perfil | NowLook"; 
+    document.title = "Meu Perfil | Mavinda"; 
     // Carregar favoritos do localStorage
-    const savedFavorites = localStorage.getItem('nowlook_favorites');
+    const savedFavorites = localStorage.getItem('mavinda_favorites');
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites));
     }
@@ -74,7 +74,7 @@ export default function Perfil() {
   const removeFavorite = (companyId: string) => {
     const newFavorites = favorites.filter(id => id !== companyId);
     setFavorites(newFavorites);
-    localStorage.setItem('nowlook_favorites', JSON.stringify(newFavorites));
+    localStorage.setItem('mavinda_favorites', JSON.stringify(newFavorites));
   };
 
   const getStatusBadge = (status: string) => {

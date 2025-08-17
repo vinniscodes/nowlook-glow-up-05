@@ -11,7 +11,7 @@ const Index = () => {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'NowLook',
+    name: 'Mavinda',
     url: '/',
     potentialAction: {
       '@type': 'SearchAction',
@@ -91,7 +91,7 @@ const Index = () => {
         <section className="container py-12 sm:py-20 md:py-32 px-4 sm:px-6">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
-              Por que escolher a <span className="gradient-text">NowLook</span>?
+              Por que escolher a <span className="gradient-text">Mavinda</span>?
             </h2>
             <p className="mt-3 sm:mt-4 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
               Uma plataforma completa que conecta você aos melhores profissionais de beleza e bem-estar

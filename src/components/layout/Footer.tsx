@@ -15,7 +15,7 @@ const Footer = () => {
                 <span className="text-primary-foreground font-bold text-sm">NL</span>
               </div>
               <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                NowLook
+                Mavinda
               </h3>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
@@ -24,17 +24,17 @@ const Footer = () => {
             </p>
             <div className="flex gap-3">
               <Button variant="outline" size="sm" className="p-2" asChild>
-                <a href="https://instagram.com/nowlook.app" target="_blank" rel="noopener noreferrer">
+                <a href="https://instagram.com/mavinda.app" target="_blank" rel="noopener noreferrer">
                   <Instagram className="h-4 w-4" />
                 </a>
               </Button>
               <Button variant="outline" size="sm" className="p-2" asChild>
-                <a href="https://twitter.com/nowlook_app" target="_blank" rel="noopener noreferrer">
+                <a href="https://twitter.com/mavinda_app" target="_blank" rel="noopener noreferrer">
                   <Twitter className="h-4 w-4" />
                 </a>
               </Button>
               <Button variant="outline" size="sm" className="p-2" asChild>
-                <a href="mailto:contato@nowlook.app">
+                <a href="mailto:contato@mavinda.app">
                   <Mail className="h-4 w-4" />
                 </a>
               </Button>
@@ -70,7 +70,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>suporte@nowlook.app</span>
+                <span>suporte@mavinda.app</span>
               </div>
               <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4 mt-0.5" />
@@ -84,7 +84,7 @@ const Footer = () => {
 
           {/* Features */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Por que NowLook?</h4>
+            <h4 className="font-semibold text-foreground">Por que Mavinda?</h4>
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Zap className="h-4 w-4 text-primary" />
@@ -111,7 +111,7 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            © 2024 NowLook. Todos os direitos reservados.
+            © 2024 Mavinda. Todos os direitos reservados.
           </div>
           
           <div className="flex gap-6 text-sm">

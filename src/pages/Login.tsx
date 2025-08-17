@@ -108,7 +108,7 @@ const Login = () => {
                 {/* Credenciais para teste */}
                 <div className="mt-6 p-4 bg-muted rounded-lg text-sm">
                   <p className="font-semibold mb-2">Credenciais para teste:</p>
-                  <p><strong>Admin:</strong> admin@nowlook.com</p>
+                  <p><strong>Admin:</strong> admin@mavinda.com</p>
                   <p><strong>Profissional:</strong> profissional@example.com</p>
                   <p><strong>Cliente:</strong> cliente@example.com</p>
                   <p className="text-muted-foreground mt-2">Senha: qualquer senha</p>

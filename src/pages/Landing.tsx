@@ -15,7 +15,9 @@ const Landing = () => {
   const [activeFeature, setActiveFeature] = useState(0);
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState('');
+  const [confirmEmail, setConfirmEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const { login, register, loading, user } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +37,17 @@ const Landing = () => {
           navigate('/');
         }
       } else {
+        // Validações para cadastro
+        if (email !== confirmEmail) {
+          toast.error('Os emails não coincidem');
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          toast.error('As senhas não coincidem');
+          return;
+        }
+        
         const nameParts = name.split(' ');
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
@@ -42,7 +55,15 @@ const Landing = () => {
         navigate('/');
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erro na autenticação');
+      if (error instanceof Error) {
+        if (error.message.includes('User already registered')) {
+          toast.error('Este email já está cadastrado');
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.error('Erro na autenticação');
+      }
     }
   };
 
@@ -130,7 +151,7 @@ const Landing = () => {
                 </Badge>
                 
                 <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight tracking-tight">
-                  <span className="gradient-text">NowLook</span>
+                  <span className="gradient-text">Mavinda</span>
                   <br />
                   <span className="text-foreground">Conecta você</span>
                   <br />
@@ -190,30 +211,68 @@ const Landing = () => {
                 <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
                   <form onSubmit={handleAuth} className="space-y-3 sm:space-y-4">
                     {!isLoginMode && (
-                      <Input 
-                        placeholder="Nome completo" 
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
-                      />
+                      <>
+                        <Input 
+                          placeholder="Nome completo" 
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
+                        />
+                        <Input 
+                          type="email" 
+                          placeholder="E-mail" 
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
+                        />
+                        <Input 
+                          type="email" 
+                          placeholder="Confirmar e-mail" 
+                          value={confirmEmail}
+                          onChange={(e) => setConfirmEmail(e.target.value)}
+                          required
+                          className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
+                        />
+                        <Input 
+                          type="password" 
+                          placeholder="Senha" 
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
+                        />
+                        <Input 
+                          type="password" 
+                          placeholder="Confirmar senha" 
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
+                        />
+                      </>
                     )}
-                    <Input 
-                      type="email" 
-                      placeholder="E-mail" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
-                    />
-                    <Input 
-                      type="password" 
-                      placeholder="Senha" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
-                    />
+                    {isLoginMode && (
+                      <>
+                        <Input 
+                          type="email" 
+                          placeholder="E-mail" 
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
+                        />
+                        <Input 
+                          type="password" 
+                          placeholder="Senha" 
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          className="h-10 sm:h-12 glass border-0 shadow-professional text-sm sm:text-base"
+                        />
+                      </>
+                    )}
                   </form>
 
                   <Button 

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function Promocoes() {
-  useEffect(() => { document.title = "Promoções | NowLook"; }, []);
+  useEffect(() => { document.title = "Promoções | Mavinda"; }, []);
 
   const promos = [
     { id: 1, title: "Corte + Barba", desc: "Combo especial de sexta-feira.", off: "20%" },

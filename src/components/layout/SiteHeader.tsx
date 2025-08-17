@@ -88,7 +88,7 @@ const SiteHeader = () => {
     <header className="w-full border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50 shadow-professional">
       <nav className="container flex h-16 items-center justify-between px-4 sm:px-6">
         <NavLink to="/" className="inline-flex items-center gap-2 font-bold text-lg sm:text-xl gradient-text">
-          NowLook
+          Mavinda
         </NavLink>
         
         {/* Desktop Navigation */}

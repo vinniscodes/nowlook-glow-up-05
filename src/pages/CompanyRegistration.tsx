@@ -96,7 +96,7 @@ const CompanyRegistration = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           <div>
             <h1 className="text-3xl font-bold gradient-text">Cadastro Profissional</h1>
-            <p className="text-muted-foreground mt-2">Configure seu negócio na plataforma NowLook</p>
+            <p className="text-muted-foreground mt-2">Configure seu negócio na plataforma Mavinda</p>
           </div>
 
           {/* Status do Plano */}

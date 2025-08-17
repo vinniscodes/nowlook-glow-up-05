@@ -3,7 +3,7 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AuthInfo() {
-  useEffect(() => { document.title = "Autenticação | NowLook"; }, []);
+  useEffect(() => { document.title = "Autenticação | Mavinda"; }, []);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />

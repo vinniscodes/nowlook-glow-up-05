@@ -27,7 +27,7 @@ const AdminControlCenter = () => {
   const userRole = getUserRole(user);
 
   useEffect(() => {
-    document.title = "Central de Controle | NowLook";
+    document.title = "Central de Controle | Mavinda";
     
     if (!user || userRole !== 'admin') {
       navigate('/');
@@ -116,7 +116,7 @@ const AdminControlCenter = () => {
               <Shield className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold gradient-text">Central de Controle NowLook</h1>
+              <h1 className="text-3xl font-bold gradient-text">Central de Controle Mavinda</h1>
               <p className="text-muted-foreground">Painel administrativo completo</p>
             </div>
           </div>

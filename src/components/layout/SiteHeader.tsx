@@ -87,8 +87,8 @@ const SiteHeader = () => {
   return (
     <header className="w-full border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50 shadow-professional">
       <nav className="container flex h-16 items-center justify-between px-4 sm:px-6">
-        <NavLink to="/" className="inline-flex items-center gap-2 font-bold text-lg sm:text-xl gradient-text">
-          Mavinda
+        <NavLink to="/" className="inline-flex items-center gap-2">
+          <span className="mavinda-brand text-lg sm:text-xl">Mavinda</span>
         </NavLink>
         
         {/* Desktop Navigation */}
@@ -249,7 +249,7 @@ const SiteHeader = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
                 <div className="flex items-center justify-between border-b pb-4 mb-4">
-                  <span className="font-semibold text-lg gradient-text">Menu</span>
+                  <span className="mavinda-brand text-lg">Menu</span>
                   <Button 
                     variant="ghost" 
                     size="sm" 

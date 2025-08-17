@@ -151,7 +151,7 @@ const Landing = () => {
                 </Badge>
                 
                 <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight tracking-tight">
-                  <span className="gradient-text">Mavinda</span>
+                  <span className="mavinda-brand">Mavinda</span>
                   <br />
                   <span className="text-foreground">Conecta você</span>
                   <br />

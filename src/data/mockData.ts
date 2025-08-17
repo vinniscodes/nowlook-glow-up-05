@@ -9,44 +9,7 @@ export const mockServices: Service[] = [
   { id: '6', name: 'Coloração', price: 80, duration: 120, description: 'Coloração completa' },
 ];
 
-export const mockCompanies: Company[] = [
-  {
-    id: '1',
-    name: 'Barbearia Moderna',
-    address: 'Rua das Flores, 123 - Centro',
-    phone: '(11) 99999-1111',
-    email: 'contato@barbearia.com',
-    latitude: -23.5505,
-    longitude: -46.6333,
-    services: [mockServices[0], mockServices[1]],
-    ownerId: '2',
-    verified: true
-  },
-  {
-    id: '2',
-    name: 'Salão Beleza Total',
-    address: 'Av. Paulista, 456 - Bela Vista',
-    phone: '(11) 99999-2222',
-    email: 'contato@belezatotal.com',
-    latitude: -23.5616,
-    longitude: -46.6562,
-    services: [mockServices[2], mockServices[3], mockServices[4], mockServices[5]],
-    ownerId: '2',
-    verified: true
-  },
-  {
-    id: '3',
-    name: 'Studio Hair & Beauty',
-    address: 'Rua Augusta, 789 - Consolação',
-    phone: '(11) 99999-3333',
-    email: 'contato@studiohair.com',
-    latitude: -23.5558,
-    longitude: -46.6396,
-    services: mockServices,
-    ownerId: '2',
-    verified: true
-  }
-];
+export const mockCompanies: Company[] = [];
 
 export const mockBookings: Booking[] = [
   {

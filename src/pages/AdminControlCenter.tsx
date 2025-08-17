@@ -116,7 +116,7 @@ const AdminControlCenter = () => {
               <Shield className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold gradient-text">Central de Controle Mavinda</h1>
+              <h1 className="text-3xl font-bold"><span className="mavinda-brand">Central de Controle Mavinda</span></h1>
               <p className="text-muted-foreground">Painel administrativo completo</p>
             </div>
           </div>

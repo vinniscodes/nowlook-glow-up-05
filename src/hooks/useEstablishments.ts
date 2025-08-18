@@ -30,13 +30,25 @@ export const useEstablishments = () => {
   const fetchEstablishments = async () => {
     setIsLoading(true);
     try {
+      // Usando apenas campos públicos para proteger dados sensíveis
       const { data, error } = await supabase
         .from('establishments')
         .select(`
-          *,
-          services (*)
+          id,
+          name,
+          address,
+          city,
+          state,
+          category,
+          description,
+          lat,
+          lng,
+          business_hours,
+          images,
+          created_at,
+          services!inner (*)
         `)
-        .eq('is_active', true);
+        .eq('is_active', true)
 
       if (error) {
         console.error('Erro ao buscar estabelecimentos:', error);
@@ -47,8 +59,6 @@ export const useEstablishments = () => {
         id: establishment.id,
         name: establishment.name,
         address: establishment.address,
-        phone: establishment.phone,
-        email: establishment.email,
         description: establishment.description,
         lat: establishment.lat ? Number(establishment.lat) : undefined,
         lng: establishment.lng ? Number(establishment.lng) : undefined,

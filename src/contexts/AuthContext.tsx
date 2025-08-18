@@ -145,6 +145,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Aguardar o contexto ser atualizado e então redirecionar baseado no role
       toast.success('Login realizado com sucesso!');
+      
+      // Aguardar um momento para o contexto ser atualizado
+      setTimeout(() => {
+        window.location.href = '/home';
+      }, 500);
     } catch (error: any) {
       toast.error(error.message || 'Erro ao fazer login');
       throw error;

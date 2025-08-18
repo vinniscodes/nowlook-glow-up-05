@@ -137,6 +137,75 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_bookings: {
+        Row: {
+          booking_date: string
+          created_at: string | null
+          duration_minutes: number
+          establishment_id: string
+          guest_email: string | null
+          guest_name: string
+          guest_phone: string
+          id: string
+          notes: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_status: Database["public"]["Enums"]["payment_status"] | null
+          service_id: string
+          status: Database["public"]["Enums"]["booking_status"] | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          booking_date: string
+          created_at?: string | null
+          duration_minutes: number
+          establishment_id: string
+          guest_email?: string | null
+          guest_name: string
+          guest_phone: string
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_status?: Database["public"]["Enums"]["payment_status"] | null
+          service_id: string
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string | null
+          duration_minutes?: number
+          establishment_id?: string
+          guest_email?: string | null
+          guest_name?: string
+          guest_phone?: string
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_status?: Database["public"]["Enums"]["payment_status"] | null
+          service_id?: string
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_bookings_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -355,6 +424,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       log_security_event: {
         Args: {
           description: string
@@ -370,6 +443,16 @@ export type Database = {
       }
       validate_email: {
         Args: { email_input: string }
+        Returns: boolean
+      }
+      validate_guest_booking: {
+        Args: {
+          p_booking_date: string
+          p_establishment_id: string
+          p_guest_name: string
+          p_guest_phone: string
+          p_service_id: string
+        }
         Returns: boolean
       }
     }

@@ -14,6 +14,7 @@ import Promocoes from "./pages/Promocoes";
 import Perfil from "./pages/Perfil";
 import Buscar from "./pages/Buscar";
 import Estabelecimento from "./pages/Estabelecimento";
+import EstabelecimentoPublico from "./pages/EstabelecimentoPublico";
 import AuthInfo from "./pages/Auth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -40,6 +41,7 @@ const App = () => (
                   <Route path="/login" element={<Login />} />
                   <Route path="/buscar" element={<Buscar />} />
                   <Route path="/estabelecimento/:id" element={<Estabelecimento />} />
+                  <Route path="/loja/:id" element={<EstabelecimentoPublico />} />
                   <Route path="/agendar" element={<Agendar />} />
                   <Route path="/promocoes" element={<Promocoes />} />
                   <Route path="/perfil" element={<Perfil />} />
